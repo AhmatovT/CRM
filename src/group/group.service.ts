@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateGroupDto } from './dto/create-group.dto';
 import { UpdateGroupDto } from './dto/update-group.dto';
 import { PrismaService } from 'prisma/prisma.service';
+import { GroupQueryDto } from './dto/group-query.dto';
 
 @Injectable()
 export class GroupsService {
@@ -12,11 +13,23 @@ export class GroupsService {
       data: dto,
     });
   }
+  async findAll(query: GroupQueryDto) {
+    const { search, isActive, page = 1, limit = 10 } = query;
 
-  async findAll() {
     return this.prisma.group.findMany({
-      where: { deletedAt: null },
-      include: { room: true },
+      where: {
+        deletedAt: null,
+        ...(isActive !== undefined && { isActive }),
+        ...(search && {
+          name: {
+            contains: search,
+            mode: 'insensitive',
+          },
+        }),
+      },
+      skip: (page - 1) * limit,
+      take: limit,
+      orderBy: { createdAt: 'desc' },
     });
   }
 

@@ -29,7 +29,7 @@ model Group {
   deleteReason String?
 
   // Relations
-  teacher   TeacherProfile @relation(fields: [teacherId], references: [id])
+  //teacher   TeacherProfile @relation(fields: [teacherId], references: [id])
   room      Room           @relation(fields: [roomId], references: [id])
 
   // enrollments Enrollment[]

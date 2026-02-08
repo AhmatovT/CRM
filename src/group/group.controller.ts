@@ -6,10 +6,12 @@ import {
   Patch,
   Post,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { CreateGroupDto } from './dto/create-group.dto';
 import { UpdateGroupDto } from './dto/update-group.dto';
 import { GroupsService } from './group.service';
+import { GroupQueryDto } from './dto/group-query.dto';
 
 @Controller('groups')
 export class GroupsController {
@@ -21,8 +23,8 @@ export class GroupsController {
   }
 
   @Get()
-  findAll() {
-    return this.groupsService.findAll();
+  findAll(@Query() query: GroupQueryDto) {
+    return this.groupsService.findAll(query);
   }
 
   @Get(':id')
