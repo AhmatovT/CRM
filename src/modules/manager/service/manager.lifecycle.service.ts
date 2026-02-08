@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateManagerDto } from '../dto/create-manager.dto';
 import { PrismaService } from 'prisma/prisma.service';
-import { hashPassword } from 'src/common/password.util';
+import { hashPassword } from 'src2/common/password.util';
 
 @Injectable()
 export class ManagerLifecycleService {
