@@ -1,11 +1,10 @@
-generator client {
-
-  provider = "prisma-client"
-  output   = "../generated/prisma"
-}
-
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
 }
 
 model Group {
@@ -15,6 +14,7 @@ model Group {
   price     Int
   capacity  Int
 
+  // Foreign keys (hozircha oddiy fieldlar)
   teacherId String
   roomId    String
 
@@ -27,29 +27,4 @@ model Group {
   deletedAt    DateTime?
   deletedById  String?
   deleteReason String?
-
-  // Relations
-  //teacher   TeacherProfile @relation(fields: [teacherId], references: [id])
-  room      Room           @relation(fields: [roomId], references: [id])
-
-  // enrollments Enrollment[]
-}
-model Room {
-  id        String @id @default(uuid())
-
-  name      String
-  capacity  Int
-
-  isActive  Boolean @default(true)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Soft delete
-  deletedAt    DateTime?
-  deletedById  String?
-  deleteReason String?
-
-  // Relations
-  groups    Group[]
 }
