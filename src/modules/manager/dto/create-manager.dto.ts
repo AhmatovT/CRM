@@ -1,25 +1,23 @@
-import { IsNotEmpty, IsOptional, IsString, MinLength } from 'class-validator';
+import { IsOptional, IsString, MinLength } from 'class-validator';
 
 export class CreateManagerDto {
   @IsString()
-  @IsNotEmpty()
+  @MinLength(2)
   firstName: string;
 
   @IsString()
-  @IsNotEmpty()
+  @MinLength(2)
   lastName: string;
 
   @IsString()
-  @IsOptional()
-  phone?: string;
+  @MinLength(7)
+  phone: string;
 
   @IsString()
   @MinLength(8)
   password: string;
 
-  // ===== MANAGER PROFILE =====
-
-  @IsString()
   @IsOptional()
+  @IsString()
   note?: string;
 }

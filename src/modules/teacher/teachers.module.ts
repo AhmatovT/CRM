@@ -1,21 +1,10 @@
-import { Module } from "@nestjs/common";
-import { TeacherCommandController } from "./controllers/teacher.command.controller";
-import { TeacherLifecycleService } from "./services/teacher.lifecycle.service";
-import { TeacherAcademicService } from "./services/teacher.academic.service";
-import { TeacherQueryService } from "./services/teacher.query.service";
-import { TeacherActiveGuard } from "./guards/teacher-active.guard";
-import { TeacherController } from "./controllers/teacher.query.controller";
+import { Module } from '@nestjs/common';
+import { TeacherController } from './teacher.controller';
+import { PrismaService } from 'prisma/prisma.service';
+import { TeacherService } from './teacher.service.ts ';
 
 @Module({
-  controllers: [
-    TeacherCommandController,
-    TeacherController,
-  ],
-  providers: [
-    TeacherLifecycleService,
-    TeacherAcademicService,
-    TeacherQueryService,
-    TeacherActiveGuard,
-  ],
+  controllers: [TeacherController],
+  providers: [TeacherService, PrismaService],
 })
-export class TeachersModule {}
+export class TeacherModule {}
