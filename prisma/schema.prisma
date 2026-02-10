@@ -1,8 +1,48 @@
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
+}
+
+
+enum Role {
+  ADMIN
+  MANAGER
+  TEACHER
+  STUDENT
+}
+
+enum UserStatus {
+  ACTIVE
+  BLOCKED
+}
+
+model User {
+  id String @id @default(cuid())
+  phone String? @unique
+  passwordHash String? 
+  role Role
+  status UserStatus  @default(ACTIVE)
+  refreshToken RefreshToken[]
+  mustChangePassword Boolean @default(false)
+  tokenVersion Int @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([role])
+}
+
+model RefreshToken {
+  id        String    @id @default(cuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId])
+  @@index([expiresAt])
+  @@index([revokedAt])
 }

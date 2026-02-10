@@ -1,9 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import type { ConfigType } from '@nestjs/config';
-
 import { envValidationSchema } from './config/env.validation';
 import { appConfig } from './config/app.config';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -12,6 +11,7 @@ import { appConfig } from './config/app.config';
       validationSchema: envValidationSchema,
       load: [appConfig],
     }),
+    AuthModule,
   ],
   providers: [],
   controllers: [],
