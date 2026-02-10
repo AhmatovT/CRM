@@ -9,21 +9,14 @@ datasource db {
 }
 
 model Room {
-  id             String   @id @default(uuid())
-  schoolId        String
-
+  id             String    @id @default(cuid())
   name           String
-  nameNormalized String
-
   capacity       Int
-  isActive       Boolean  @default(true)
-
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-
+  isActive       Boolean   @default(true)
   deletedAt      DateTime?
-  deletedById    String?
-  deleteReason   String?
 
-  @@index([schoolId])
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([deletedAt])
 }

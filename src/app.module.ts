@@ -4,8 +4,8 @@ import { ConfigModule } from '@nestjs/config';
 import { envValidationSchema } from './config/env.validation';
 import { appConfig } from './config/app.config';
 
-import { RoomsModule } from './rooms/rooms.module';
 import { PrismaModule } from 'prisma/prisma.module';
+import { RoomsModule } from './modules/rooms/rooms.module';
 
 @Module({
   imports: [
