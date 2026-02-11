@@ -15,7 +15,7 @@ import { RoomsModule } from './modules/rooms/rooms.module';
       load: [appConfig],
     }),
 
-    // ✅ DB layer
+    // ✅ DB l ayer
     PrismaModule,
 
     // ✅ Feature module
