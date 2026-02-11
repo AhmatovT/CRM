@@ -1,5 +1,5 @@
-import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
+import { Module } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
 import { appConfig } from '../config/app.config';
 import { AuthController } from './auth.controller';

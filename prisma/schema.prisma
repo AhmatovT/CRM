@@ -5,98 +5,8 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
-
-
-enum TeacherPaymentType {
-  FIXED
-  PERCENT
-}
-
-
-
-model TeacherProfile {
-  id        String @id @default(uuid())
-  userId    String @unique
-
-  firstName String
-  lastName  String
-
-  paymentType TeacherPaymentType
-  monthlySalary Int?
-  percent       Int?
-
-  isActive Boolean @default(true)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  deletedAt    DateTime?
-  deletedById  String?
-  deleteReason String?
-
-  // user User @relation(fields: [userId], references: [id])
-
-  @@index([userId])
-}
-
-
-
-model StudentProfile {
-  id        String @id @default(uuid())
-  userId    String @unique
-
-  // 👤 PERSONAL INFO
-  firstName String
-  lastName  String
-
-  address   String
-  idCard    String
-  photoUrl  String
-
-  isActive Boolean @default(true)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Soft delete
-  deletedAt    DateTime?
-  deletedById  String?
-  deleteReason String?
-
-  // user User @relation(fields: [userId], references: [id])
-
-  @@index([userId])
-}
-
-
-model ManagerProfile {
-  id        String @id @default(uuid())
-  userId    String @unique
-
-  // 👤 PERSONAL INFO
-  firstName String
-  lastName  String
-
-  note      String?
-
-  // ===== LIFECYCLE =====
-  isActive  Boolean @default(true)
-
-  // ===== SOFT DELETE =====
-  deletedAt    DateTime?
-  deletedById  String?
-  deleteReason String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // user User @relation(fields: [userId], references: [id])
-
-  @@index([userId])
-}
 
 
 enum Role {
@@ -110,6 +20,14 @@ enum UserStatus {
   ACTIVE
   BLOCKED
 }
+enum Gender {
+  MALE
+  FEMALE
+}
+enum TeacherPaymentType {
+  SALARY
+  PERCENT
+}
 
 model User {
   id String @id @default(cuid())
@@ -122,6 +40,14 @@ model User {
   tokenVersion Int @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  teacherProfile TeacherProfile?
+  studentProfile StudentProfile?
+  managerProfile ManagerProfile?
+
+  deletedTeacherProfiles TeacherProfile[] @relation("TeacherProfileDeletedBy")
+  deletedStudentProfiles StudentProfile[] @relation("StudentProfileDeletedBy")
+  deletedManagerProfiles ManagerProfile[] @relation("ManagerProfileDeletedBy")
 
   @@index([role])
 }
@@ -137,4 +63,90 @@ model RefreshToken {
   @@index([userId])
   @@index([expiresAt])
   @@index([revokedAt])
+}
+
+model ManagerProfile {
+  id        String @id @default(cuid())
+  userId    String @unique
+
+  firstName String
+  lastName  String
+  gender    Gender?
+  birthDate DateTime?
+  photoUrl  String?
+
+  salary    Int     // 🔥 YANGI
+
+  note      String?
+  isActive  Boolean @default(true)
+
+  deletedAt    DateTime?
+  deletedById  String?
+  deleteReason String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deletedBy User?  @relation("ManagerProfileDeletedBy", fields: [deletedById], references: [id])
+}
+
+
+model StudentProfile {
+  id        String @id @default(cuid())
+  userId    String @unique
+
+  firstName String
+  lastName  String
+  address   String
+
+  gender    Gender?
+  birthDate DateTime?
+
+  idCard    String?
+  photoUrl  String?
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  deletedAt    DateTime?
+  deletedById  String?
+  deleteReason String?
+
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deletedBy User?  @relation("StudentProfileDeletedBy", fields: [deletedById], references: [id])
+
+  @@index([userId])
+}
+
+
+model TeacherProfile {
+  id        String @id @default(cuid())
+  userId    String @unique
+
+  firstName String
+  lastName  String
+
+  gender    Gender?
+  
+  paymentType TeacherPaymentType
+
+  monthlySalary Int?
+  percent       Int?
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  deletedAt    DateTime?
+  deletedById  String?
+  deleteReason String?
+
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deletedBy User?  @relation("TeacherProfileDeletedBy", fields: [deletedById], references: [id])
+
+  @@index([userId])
 }

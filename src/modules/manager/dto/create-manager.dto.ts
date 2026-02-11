@@ -1,4 +1,13 @@
-import { IsOptional, IsString, MinLength } from 'class-validator';
+import { Gender } from '@prisma/client';
+import {
+  IsDateString,
+  IsEnum,
+  IsOptional,
+  IsString,
+  MinLength,
+  IsInt,
+  Min,
+} from 'class-validator';
 
 export class CreateManagerDto {
   @IsString()
@@ -16,6 +25,20 @@ export class CreateManagerDto {
   @IsString()
   @MinLength(8)
   password: string;
+
+  @IsEnum(Gender)
+  gender: Gender;
+
+  @IsDateString()
+  birthDate: string;
+
+  @IsInt()
+  @Min(0)
+  salary: number; // 🔥 YANGI (majburiy)
+
+  @IsOptional()
+  @IsString()
+  photoUrl?: string;
 
   @IsOptional()
   @IsString()

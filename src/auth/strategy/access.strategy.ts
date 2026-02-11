@@ -1,3 +1,4 @@
+import { PassportStrategy } from '@nestjs/passport';
 import {
   ForbiddenException,
   Inject,
@@ -5,7 +6,6 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import type { ConfigType } from '@nestjs/config';
-import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PrismaService } from 'prisma/prisma.service';
 import { appConfig } from 'src/config/app.config';
@@ -26,11 +26,49 @@ export class AccessJwtStrategy extends PassportStrategy(
     });
   }
 
+  // async validate(payload: AccessTokenPayload) {
+  //   if (!payload?.sub) {
+  //     throw new UnauthorizedException('Invalid access token paylaod');
+  //   }
+  //   if (payload.ver === undefined || payload.ver === null) {
+  //     throw new UnauthorizedException('Missing token version');
+  //   }
+
+  //   const user = await this.prisma.user.findUnique({
+  //     where: { id: payload.sub },
+  //     select: {
+  //       id: true,
+  //       role: true,
+  //       status: true,
+  //       tokenVersion: true,
+  //       mustChangePassword: true,
+  //     },
+  //   });
+  //   if (!user) throw new UnauthorizedException('User not found');
+  //   if (user.status !== 'ACTIVE') {
+  //     throw new ForbiddenException('User is not active');
+  //   }
+  //   if (user.tokenVersion !== payload.ver) {
+  //     {
+  //       throw new UnauthorizedException('Access token revoked');
+  //     }
+  //   }
+  //   return {
+  //     userId: user.id,
+  //     role: payload.role,
+  //     mustChangePassword: user.mustChangePassword,
+  //   };
+  // }
+
+  //////////////////////////////////////////////////////////////////////
+  ///////////////////Delete da role kelishi uchun ozgartirdim////////////
+  //////////////////////////////////////////////////////////////////////
   async validate(payload: AccessTokenPayload) {
     if (!payload?.sub) {
-      throw new UnauthorizedException('Invalid access token paylaod');
+      throw new UnauthorizedException('Invalid access token payload');
     }
-    if (payload.ver === undefined || payload.ver === null) {
+
+    if (payload.ver == null) {
       throw new UnauthorizedException('Missing token version');
     }
 
@@ -44,18 +82,16 @@ export class AccessJwtStrategy extends PassportStrategy(
         mustChangePassword: true,
       },
     });
+
     if (!user) throw new UnauthorizedException('User not found');
-    if (user.status !== 'ACTIVE') {
+    if (user.status !== 'ACTIVE')
       throw new ForbiddenException('User is not active');
-    }
-    if (user.tokenVersion !== payload.ver) {
-      {
-        throw new UnauthorizedException('Access token revoked');
-      }
-    }
+    if (user.tokenVersion !== payload.ver)
+      throw new UnauthorizedException('Access token revoked');
+
     return {
-      userId: user.id,
-      role: payload.role,
+      id: user.id,
+      role: user.role,
       mustChangePassword: user.mustChangePassword,
     };
   }

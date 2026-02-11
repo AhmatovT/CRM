@@ -7,7 +7,7 @@ import {
 import { PrismaService } from 'prisma/prisma.service';
 import { CreateTeacherDto } from './dto/create-teacher.dto';
 import { UpdateTeacherDto } from './dto/update-teacher.dto';
-import { Prisma, Role, UserStatus } from '@prisma/client';
+import { Prisma, Role, TeacherPaymentType, UserStatus } from '@prisma/client';
 import * as argon2 from 'argon2';
 
 @Injectable()
@@ -20,26 +20,30 @@ export class TeacherService {
   private validateSalary(dto: CreateTeacherDto | UpdateTeacherDto) {
     if (!dto.paymentType) return;
 
-    if (dto.paymentType === 'FIXED') {
-      if (dto.monthlySalary === undefined) {
+    if (dto.paymentType === TeacherPaymentType.SALARY) {
+      if (dto.monthlySalary == null) {
         throw new BadRequestException(
-          'monthlySalary is required for FIXED teachers',
+          'monthlySalary is required when paymentType is SALARY',
         );
       }
-      if (dto.percent !== undefined) {
-        throw new BadRequestException('FIXED teacher cannot have percent');
+
+      if (dto.percent != null) {
+        throw new BadRequestException(
+          'SALARY type teacher cannot have percent',
+        );
       }
     }
 
-    if (dto.paymentType === 'PERCENT') {
-      if (dto.percent === undefined) {
+    if (dto.paymentType === TeacherPaymentType.PERCENT) {
+      if (dto.percent == null) {
         throw new BadRequestException(
-          'percent is required for PERCENT teachers',
+          'percent is required when paymentType is PERCENT',
         );
       }
-      if (dto.monthlySalary !== undefined) {
+
+      if (dto.monthlySalary != null) {
         throw new BadRequestException(
-          'PERCENT teacher cannot have monthlySalary',
+          'PERCENT type teacher cannot have monthlySalary',
         );
       }
     }
@@ -57,7 +61,6 @@ export class TeacherService {
         : null;
 
       return await this.prisma.$transaction(async (tx) => {
-        // 1️⃣ USER (AUTH)
         const user = await tx.user.create({
           data: {
             phone: dto.phone,
@@ -67,18 +70,17 @@ export class TeacherService {
           },
         });
 
-        // 2️⃣ TEACHER PROFILE
         return tx.teacherProfile.create({
           data: {
             userId: user.id,
-
             firstName: dto.firstName.trim(),
             lastName: dto.lastName.trim(),
-
+            gender: dto.gender ?? null,
             paymentType: dto.paymentType,
             monthlySalary: dto.monthlySalary ?? null,
             percent: dto.percent ?? null,
           },
+          include: { user: true },
         });
       });
     } catch (e) {
@@ -101,9 +103,7 @@ export class TeacherService {
     this.validateSalary(dto);
 
     return this.prisma.$transaction(async (tx) => {
-      // ===============================
-      // USER UPDATE (AUTH)
-      // ===============================
+      // 🔹 USER UPDATE
       const userData: Prisma.UserUpdateInput = {};
 
       if (dto.phone !== undefined) {
@@ -121,18 +121,19 @@ export class TeacherService {
         });
       }
 
-      // ===============================
-      // PROFILE UPDATE (DOMAIN)
-      // ===============================
+      // 🔹 PROFILE UPDATE
       const profileData: Prisma.TeacherProfileUpdateInput = {};
 
-      // 🔥 MANA ENG MUHIM QISM
       if (dto.firstName !== undefined) {
         profileData.firstName = dto.firstName.trim();
       }
 
       if (dto.lastName !== undefined) {
         profileData.lastName = dto.lastName.trim();
+      }
+
+      if (dto.gender !== undefined) {
+        profileData.gender = dto.gender;
       }
 
       if (dto.paymentType !== undefined) {
@@ -190,7 +191,7 @@ export class TeacherService {
   // ===============================
   // SOFT DELETE
   // ===============================
-  async softDelete(id: string) {
+  async softDelete(id: string, adminId: string) {
     await this.findById(id);
 
     return this.prisma.teacherProfile.update({
@@ -198,7 +199,64 @@ export class TeacherService {
       data: {
         isActive: false,
         deletedAt: new Date(),
+        deletedById: adminId,
       },
     });
+  }
+
+  // ===============================
+  // RESTORE
+  // ===============================
+  async restore(id: string) {
+    const teacher = await this.prisma.teacherProfile.findUnique({
+      where: { id },
+    });
+
+    if (!teacher || !teacher.deletedAt) {
+      throw new NotFoundException('Deleted teacher not found');
+    }
+
+    return this.prisma.teacherProfile.update({
+      where: { id },
+      data: {
+        isActive: true,
+        deletedAt: null,
+        deletedById: null,
+        deleteReason: null,
+      },
+    });
+  }
+
+  // ===============================
+  // DELETE HISTORY
+  // ===============================
+  async getDeleteHistory() {
+    const deletedTeachers = await this.prisma.teacherProfile.findMany({
+      where: {
+        deletedAt: { not: null },
+      },
+      include: {
+        deletedBy: {
+          select: {
+            id: true,
+            role: true,
+            phone: true,
+          },
+        },
+      },
+      orderBy: {
+        deletedAt: 'desc',
+      },
+    });
+
+    return deletedTeachers.map((t) => ({
+      teacherId: t.id,
+      firstName: t.firstName,
+      lastName: t.lastName,
+      deletedAt: t.deletedAt,
+      deletedById: t.deletedById,
+      deletedByRole: t.deletedBy?.role,
+      deletedByPhone: t.deletedBy?.phone,
+    }));
   }
 }

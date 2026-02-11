@@ -1,31 +1,51 @@
-import { IsOptional, IsString, MinLength, IsUrl } from 'class-validator';
+import { Gender } from '@prisma/client';
+import {
+  IsDateString,
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 
 export class CreateStudentDto {
-  // auth
-  @IsOptional()
   @IsString()
-  phone?: string;
-
-  @IsOptional()
-  @IsString()
-  @MinLength(6)
-  password?: string;
-
-  // profile
-  @IsString()
-  @MinLength(2)
+  @IsNotEmpty()
   firstName: string;
 
   @IsString()
-  @MinLength(2)
+  @IsNotEmpty()
   lastName: string;
 
   @IsString()
-  address: string;
+  @IsNotEmpty()
+  phone: string;
 
   @IsString()
-  idCard: string;
+  @IsNotEmpty()
+  password: string;
 
-  @IsUrl()
-  photoUrl: string;
+  @IsDateString()
+  birthDate: string;
+
+  @IsEnum(Gender)
+  gender: Gender;
+
+  @IsString()
+  @IsNotEmpty()
+  address: string;
+
+  // 🔥 optional qilindi
+  @IsOptional()
+  @IsString()
+  idCard?: string;
+
+  // 🔥 optional qilindi
+  @IsOptional()
+  @IsString()
+  photoUrl?: string;
+
+  // 🔥 note qo‘shildi
+  @IsOptional()
+  @IsString()
+  note?: string;
 }
