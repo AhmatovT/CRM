@@ -10,6 +10,7 @@ import { TeacherModule } from './modules/teacher/teachers.module';
 import { StudentsModule } from './modules/students/students.module';
 
 import { RoomsModule } from './modules/rooms/rooms.module';
+import { GroupsModule } from './modules/group/group.module';
 
 @Module({
   imports: [
@@ -30,6 +31,8 @@ import { RoomsModule } from './modules/rooms/rooms.module';
 
     // ✅ Feature module
     RoomsModule,
+    GroupsModule,
+    PrismaModule,
   ],
 })
 export class AppModule {}

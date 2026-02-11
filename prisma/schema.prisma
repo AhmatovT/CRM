@@ -163,3 +163,26 @@ model Room {
 
   @@index([deletedAt])
 }
+
+
+model Group {
+  id        String @id @default(uuid())
+
+  name      String
+  price     Int
+  capacity  Int
+
+  // Foreign keys (hozircha oddiy fieldlar)
+  teacherId String
+  roomId    String
+
+  isActive  Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Soft delete
+  deletedAt    DateTime?
+  deletedById  String?
+  deleteReason String?
+}
