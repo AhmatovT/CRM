@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client-js"
+  // output QOLMASIN!
 }
 
 
@@ -149,4 +150,16 @@ model TeacherProfile {
   deletedBy User?  @relation("TeacherProfileDeletedBy", fields: [deletedById], references: [id])
 
   @@index([userId])
+}
+model Room {
+  id             String    @id @default(cuid())
+  name           String
+  capacity       Int
+  isActive       Boolean   @default(true)
+  deletedAt      DateTime?
+
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([deletedAt])
 }
