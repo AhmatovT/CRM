@@ -2,8 +2,6 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { envValidationSchema } from './config/env.validation';
 import { appConfig } from './config/app.config';
-import { AuthModule } from './auth/auth.module';
-
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -12,6 +10,11 @@ import { AuthModule } from './auth/auth.module';
       load: [appConfig],
     }),
     AuthModule,
+    PrismaModule,
+    HealthModule,
+    ManagersModule,
+    TeacherModule,
+    StudentsModule,
   ],
   providers: [],
   controllers: [],
