@@ -8,6 +8,7 @@ import {
   Delete,
   Query,
   UseGuards,
+  Req,
 } from '@nestjs/common';
 import { CreateGroupDto } from './dto/create-group.dto';
 import { UpdateGroupDto } from './dto/update-group.dto';
@@ -45,7 +46,8 @@ export class GroupsController {
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.groupsService.softDelete(id, 'system', 'manual delete');
-  }
+  remove(@Param('id') id: string, @Req() req: any) {
+    const actorId = req.user?.id ?? req.user?.sub;
+    return this.groupsService.softDelete(id, actorId, 'manual delete');
+   }
 }
