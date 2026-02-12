@@ -5,7 +5,7 @@ export const appConfig = registerAs('app', () => ({
   jwt: {
     accessSecret: process.env.JWT_ACCESS_SECRET!,
     refreshSecret: process.env.JWT_REFRESH_SECRET!,
-    accessTtl: (process.env.JWT_ACCESS_TTL || '15m') as StringValue, // ✅
+    accessTtl: (process.env.JWT_ACCESS_TTL || '15m') as StringValue,
     refreshTtlDays: Number(process.env.JWT_REFRESH_TTL_DAYS || 30),
   },
   refreshHashPepper: process.env.REFRESH_HASH_PEPPER!,
