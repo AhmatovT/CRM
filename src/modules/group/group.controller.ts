@@ -20,7 +20,7 @@ import { Roles } from 'src/auth/decorators/roles.decorators';
 
 @Controller('groups')
 @UseGuards(AccessTokenGuard, RolesGuard)
-@Roles(Role.ADMIN) // <-- BARCHA so'rovlar uchun bitta role
+@Roles(Role.ADMIN , Role.MANAGER) // <-- BARCHA so'rovlar uchun bitta role
 export class GroupsController {
   constructor(private readonly groupsService: GroupsService) {}
 
