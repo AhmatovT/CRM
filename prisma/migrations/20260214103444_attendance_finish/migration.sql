@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "Group" ADD COLUMN     "lessonEndMin" INTEGER NOT NULL DEFAULT 960,
+ADD COLUMN     "lessonStartMin" INTEGER NOT NULL DEFAULT 840;

@@ -3,12 +3,9 @@ generator client {
   // output QOLMASIN!
 }
 
-
 datasource db {
   provider = "postgresql"
 }
-
-
 
 enum Role {
   ADMIN
@@ -21,29 +18,52 @@ enum UserStatus {
   ACTIVE
   BLOCKED
 }
+
 enum Gender {
   MALE
   FEMALE
 }
+
 enum TeacherPaymentType {
   SALARY
   PERCENT
 }
+
 enum EnrollmentStatus {
   ACTIVE
   DROPPED
   COMPLETED
 }
 
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+  EXCUSED
+}
+
+enum AttendanceSource {
+  TEACHER
+  SYSTEM
+}
+
+enum AttendanceSessionStatus {
+  OPEN
+  LOCKED
+}
+
 model User {
-  id String @id @default(cuid())
-  phone String? @unique
-  passwordHash String? 
-  role Role
-  status UserStatus  @default(ACTIVE)
-  refreshToken RefreshToken[]
+  id                 String     @id @default(cuid())
+  phone              String?    @unique
+  passwordHash       String?
+  role               Role
+  status             UserStatus @default(ACTIVE)
+
+  refreshToken       RefreshToken[]
+
   mustChangePassword Boolean @default(false)
-  tokenVersion Int @default(0)
+  tokenVersion       Int     @default(0)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -54,28 +74,36 @@ model User {
   deletedTeacherProfiles TeacherProfile[] @relation("TeacherProfileDeletedBy")
   deletedStudentProfiles StudentProfile[] @relation("StudentProfileDeletedBy")
   deletedManagerProfiles ManagerProfile[] @relation("ManagerProfileDeletedBy")
-  deletedEnrollments Enrollment[]
+  deletedEnrollments     Enrollment[]
 
   deletedGroups Group[]
+
+  // ✅ Attendance relations
+  attendanceMarked            Attendance[]        @relation("AttendanceMarkedBy")
+  attendanceSessionsLocked    AttendanceSession[] @relation("AttendanceSessionLockedBy")
+  attendanceSessionsFinalized AttendanceSession[] @relation("AttendanceSessionFinalizedBy")
+
   @@index([role])
 }
 
 model RefreshToken {
-  id        String    @id @default(cuid())
+  id        String   @id @default(cuid())
   userId    String
-  tokenHash String    @unique
+  tokenHash String   @unique
   expiresAt DateTime
   revokedAt DateTime?
-  createdAt DateTime  @default(now())
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@index([userId])
   @@index([expiresAt])
   @@index([revokedAt])
 }
 
 model ManagerProfile {
-  id        String @id @default(cuid())
-  userId    String @unique
+  id     String @id @default(cuid())
+  userId String @unique
 
   firstName String
   lastName  String
@@ -83,10 +111,10 @@ model ManagerProfile {
   birthDate DateTime?
   photoUrl  String?
 
-  salary    Int     // 🔥 YANGI
+  salary Int
 
-  note      String?
-  isActive  Boolean @default(true)
+  note     String?
+  isActive Boolean @default(true)
 
   deletedAt    DateTime?
   deletedById  String?
@@ -95,14 +123,13 @@ model ManagerProfile {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  deletedBy User?  @relation("ManagerProfileDeletedBy", fields: [deletedById], references: [id])
+  user      User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deletedBy User? @relation("ManagerProfileDeletedBy", fields: [deletedById], references: [id])
 }
 
-
 model StudentProfile {
-  id        String @id @default(cuid())
-  userId    String @unique
+  id     String @id @default(cuid())
+  userId String @unique
 
   firstName String
   lastName  String
@@ -111,8 +138,8 @@ model StudentProfile {
   gender    Gender?
   birthDate DateTime?
 
-  idCard    String?
-  photoUrl  String?
+  idCard   String?
+  photoUrl String?
 
   isActive Boolean @default(true)
 
@@ -123,24 +150,23 @@ model StudentProfile {
   deletedById  String?
   deleteReason String?
 
-  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  deletedBy User?  @relation("StudentProfileDeletedBy", fields: [deletedById], references: [id])
+  user      User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deletedBy User? @relation("StudentProfileDeletedBy", fields: [deletedById], references: [id])
 
   enrollments Enrollment[]
+  attendance  Attendance[]
 
   @@index([userId])
 }
 
-
 model TeacherProfile {
-  id        String @id @default(cuid())
-  userId    String @unique
+  id     String @id @default(cuid())
+  userId String @unique
 
   firstName String
   lastName  String
-
   gender    Gender?
-  
+
   paymentType TeacherPaymentType
 
   monthlySalary Int?
@@ -155,11 +181,11 @@ model TeacherProfile {
   deletedById  String?
   deleteReason String?
 
-  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  deletedBy User?  @relation("TeacherProfileDeletedBy", fields: [deletedById], references: [id])
+  user      User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deletedBy User? @relation("TeacherProfileDeletedBy", fields: [deletedById], references: [id])
 
-  // ✅ QO‘SH
-  groups Group[]
+  groups             Group[]
+  attendanceSessions  AttendanceSession[]
 
   @@index([userId])
 }
@@ -174,37 +200,40 @@ model Room {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // ✅ QO‘SH
-  groups Group[]
+  groups             Group[]
+  attendanceSessions AttendanceSession[]
 
   @@index([deletedAt])
 }
-
-
 model Group {
-  id        String @id @default(uuid())
+  id String @id @default(uuid())
 
-  name      String
-  price     Int
-  capacity  Int
+  name     String
+  price    Int
+  capacity Int
 
   teacherId String
   roomId    String
 
-  teacher   TeacherProfile @relation(fields: [teacherId], references: [id])
-  room      Room           @relation(fields: [roomId], references: [id])
+  // ✅ yangi fieldlar — DEFAULT bilan
+  lessonStartMin Int @default(840) // 14:00 (xohlasang 540 = 09:00)
+  lessonEndMin   Int @default(960) // 16:00 (xohlasang 660 = 11:00)
 
-  isActive  Boolean @default(true)
+  teacher TeacherProfile @relation(fields: [teacherId], references: [id])
+  room    Room           @relation(fields: [roomId], references: [id])
+
+  isActive Boolean @default(true)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   deletedAt    DateTime?
   deletedById  String?
-  deletedBy    User? @relation(fields: [deletedById], references: [id])
+  deletedBy    User?   @relation(fields: [deletedById], references: [id])
   deleteReason String?
-     
-  enrollments Enrollment[]
+
+  enrollments        Enrollment[]
+  attendanceSessions AttendanceSession[]
 
   @@index([teacherId])
   @@index([roomId])
@@ -212,18 +241,15 @@ model Group {
   @@index([deletedById])
 }
 
-
-
-
 model Enrollment {
-  id        String @id @default(cuid())
+  id String @id @default(cuid())
 
   studentId String
   groupId   String
 
-  status    EnrollmentStatus @default(ACTIVE)
+  status EnrollmentStatus @default(ACTIVE)
 
-  startedAt DateTime @default(now())
+  startedAt DateTime  @default(now())
   endedAt   DateTime?
 
   createdAt DateTime @default(now())
@@ -243,4 +269,73 @@ model Enrollment {
   @@index([status])
   @@index([deletedAt])
   @@index([deletedById])
+}
+
+model AttendanceSession {
+  id String @id @default(cuid())
+
+  groupId String
+  group   Group @relation(fields: [groupId], references: [id])
+
+  teacherId String
+  teacher   TeacherProfile @relation(fields: [teacherId], references: [id])
+
+  roomId String
+  room   Room @relation(fields: [roomId], references: [id])
+
+  date DateTime
+
+  startMin Int
+  endMin   Int
+
+  openAt  DateTime
+  closeAt DateTime
+
+  status     AttendanceSessionStatus @default(OPEN)
+  lockedAt   DateTime?
+  lockedById String?
+  lockedBy   User? @relation("AttendanceSessionLockedBy", fields: [lockedById], references: [id])
+
+  finalizedAt   DateTime?
+  finalizedById String?
+  finalizedBy   User? @relation("AttendanceSessionFinalizedBy", fields: [finalizedById], references: [id])
+
+  note String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  attendance Attendance[]
+
+  @@unique([groupId, date])
+  @@index([teacherId, date])
+  @@index([roomId, date])
+  @@index([closeAt])
+  @@index([lockedAt])
+}
+
+model Attendance {
+  id String @id @default(cuid())
+
+  sessionId String
+  session   AttendanceSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  studentId String
+  student   StudentProfile @relation(fields: [studentId], references: [id])
+
+  status  AttendanceStatus
+  comment String? @db.VarChar(200)
+
+  markedById String
+  markedBy   User @relation("AttendanceMarkedBy", fields: [markedById], references: [id])
+
+  markedAt  DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  source AttendanceSource @default(TEACHER)
+
+  @@unique([sessionId, studentId])
+  @@index([sessionId])
+  @@index([studentId])
+  @@index([markedById])
 }

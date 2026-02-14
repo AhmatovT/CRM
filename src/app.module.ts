@@ -12,6 +12,7 @@ import { StudentsModule } from './modules/students/students.module';
 import { RoomsModule } from './modules/rooms/rooms.module';
 import { GroupsModule } from './modules/group/group.module';
 import { EnrollmentsModule } from './modules/enrollments/enrollments.module';
+import { AttendanceModule } from './modules/attendance/attendance.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { EnrollmentsModule } from './modules/enrollments/enrollments.module';
     TeacherModule,
     StudentsModule,
     EnrollmentsModule,
+    AttendanceModule,
 
     // ✅ DB l ayer
     PrismaModule,
