@@ -1,51 +1,78 @@
 import {
-  Body,
   Controller,
   Get,
-  Param,
-  Patch,
   Post,
+  Body,
+  Patch,
+  Param,
   Delete,
-  Query,
+  Req,
   UseGuards,
 } from '@nestjs/common';
+import { GroupsService } from './group.service';
 import { CreateGroupDto } from './dto/create-group.dto';
 import { UpdateGroupDto } from './dto/update-group.dto';
-import { GroupsService } from './group.service';
-import { GroupQueryDto } from './dto/group-query.dto';
 import { AccessTokenGuard } from 'src/auth/guards/accessToken.guard';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
-import { Role } from '@prisma/client'; // <-- qo'shing
 import { Roles } from 'src/auth/decorators/roles.decorators';
+import { Role } from '@prisma/client';
+import { JwtUser } from 'src/auth/types/jwt-user.type';
 
 @Controller('groups')
 @UseGuards(AccessTokenGuard, RolesGuard)
-@Roles(Role.ADMIN) // <-- BARCHA so'rovlar uchun bitta role
 export class GroupsController {
-  constructor(private readonly groupsService: GroupsService) {}
+  constructor(private readonly service: GroupsService) {}
 
+  // ================= CREATE =================
   @Post()
-  create(@Body() dto: CreateGroupDto) {
-    return this.groupsService.create(dto);
+  @Roles(Role.ADMIN, Role.MANAGER)
+  create(@Body() dto: CreateGroupDto, @Req() req: { user: JwtUser }) {
+    return this.service.create(dto, req.user.id);
   }
 
+  // ================= LIST =================
   @Get()
-  findAll(@Query() query: GroupQueryDto) {
-    return this.groupsService.findAll(query);
+  @Roles(Role.ADMIN, Role.MANAGER)
+  findAll() {
+    return this.service.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.groupsService.findOne(id);
+  // ================= HISTORY (MUHIM: ID DAN OLDIN) =================
+  @Get(':id/history')
+  @Roles(Role.ADMIN)
+  getHistory(@Param('id') id: string) {
+    return this.service.getHistory(id);
   }
 
+  // ================= RESTORE =================
+  @Patch(':id/restore')
+  @Roles(Role.ADMIN)
+  restore(@Param('id') id: string, @Req() req: { user: JwtUser }) {
+    return this.service.restore(id, req.user.id);
+  }
+
+  // ================= UPDATE =================
   @Patch(':id')
-  update(@Param('id') id: string, @Body() dto: UpdateGroupDto) {
-    return this.groupsService.update(id, dto);
+  @Roles(Role.ADMIN, Role.MANAGER)
+  update(
+    @Param('id') id: string,
+    @Body() dto: UpdateGroupDto,
+    @Req() req: { user: JwtUser },
+  ) {
+    return this.service.update(id, dto, req.user.id);
   }
 
+  // ================= SOFT DELETE =================
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.groupsService.softDelete(id, 'system', 'manual delete');
+  @Roles(Role.ADMIN, Role.MANAGER)
+  softDelete(@Param('id') id: string, @Req() req: { user: JwtUser }) {
+    return this.service.softDelete(id, req.user.id, 'Deleted by user');
+  }
+
+  // ================= GET ONE (ENG OXIRIDA) =================
+  @Get(':id')
+  @Roles(Role.ADMIN, Role.MANAGER)
+  findOne(@Param('id') id: string) {
+    return this.service.findOne(id);
   }
 }

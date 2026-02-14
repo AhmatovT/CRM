@@ -28,6 +28,10 @@ enum TeacherPaymentType {
   SALARY
   PERCENT
 }
+enum WeekPattern {
+  ODD   // Dushanba, Chorshanba, Juma
+  EVEN  // Seshanba, Payshanba, Shanba
+}
 
 model User {
   id String @id @default(cuid())
@@ -40,11 +44,10 @@ model User {
   tokenVersion Int @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
   teacherProfile TeacherProfile?
   studentProfile StudentProfile?
   managerProfile ManagerProfile?
-
+  groupHistories GroupHistory[] @relation("GroupHistoryActor")
   deletedTeacherProfiles TeacherProfile[] @relation("TeacherProfileDeletedBy")
   deletedStudentProfiles StudentProfile[] @relation("StudentProfileDeletedBy")
   deletedManagerProfiles ManagerProfile[] @relation("ManagerProfileDeletedBy")
@@ -140,7 +143,7 @@ model TeacherProfile {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
+  assignments TeacherAssignment[]
   deletedAt    DateTime?
   deletedById  String?
   deleteReason String?
@@ -159,29 +162,82 @@ model Room {
 
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
+  groups          Group[]
+  @@index([deletedAt])
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  RESTORE
+}
+
+model GroupHistory {
+  id        String      @id @default(cuid())
+  groupId   String
+  actorId   String
+  action    AuditAction
+  oldData   Json?
+  newData   Json?
+  timestamp DateTime    @default(now())
+
+  group     Group @relation(fields: [groupId], references: [id])
+  
+  // 🔥 Relation name beramiz
+  actor     User  @relation("GroupHistoryActor", fields: [actorId], references: [id])
+
+  @@index([groupId])
+  @@index([actorId])
+}
+
+
+model Group {
+  id           String   @id @default(cuid())
+  name         String
+  monthlyFee   Int
+  capacity     Int
+  weekPattern  String
+  roomId       String
+
+  startTime    Int
+  endTime      Int
+
+  createdAt    DateTime @default(now())
+  createdById  String?
+
+  updatedAt    DateTime @updatedAt
+  updatedById  String?
+
+  deletedAt    DateTime?
+  deletedById  String?
+  deleteReason String?
+  isActive     Boolean  @default(true)
+  teachers     TeacherAssignment[]
+  room         Room     @relation(fields: [roomId], references: [id])
+   histories    GroupHistory[]
 
   @@index([deletedAt])
 }
 
 
-model Group {
-  id        String @id @default(uuid())
 
-  name      String
-  price     Int
-  capacity  Int
 
-  // Foreign keys (hozircha oddiy fieldlar)
+model TeacherAssignment {
+  id        String   @id @default(cuid())
+
   teacherId String
-  roomId    String
+  groupId   String
 
-  isActive  Boolean @default(true)
+  assignedAt DateTime @default(now())
+  endedAt    DateTime?
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  isActive Boolean @default(true)
 
-  // Soft delete
-  deletedAt    DateTime?
-  deletedById  String?
-  deleteReason String?
+  teacher TeacherProfile @relation(fields: [teacherId], references: [id])
+  group   Group          @relation(fields: [groupId], references: [id])
+
+  @@index([teacherId])
+  @@index([groupId])
+
 }

@@ -1,10 +1,13 @@
 {
-  "moduleFileExtensions": ["js", "json", "ts"],
   "rootDir": "..",
+  "moduleFileExtensions": ["js", "json", "ts"],
   "testEnvironment": "node",
-  "testRegex": "rooms\\.e2e-spec\\.ts$",
-  "transform": { "^.+\\.(t|j)s$": "ts-jest" },
+  "testRegex": "test/.*\\.e2e-spec\\.ts$",
+  "transform": {
+    "^.+\\.(t|j)s$": "ts-jest"
+  },
   "moduleNameMapper": {
-    "^prisma/(.*)$": "<rootDir>/prisma/$1"
+    "^src/(.*)$": "<rootDir>/src/$1",
+    "^prisma/(.*)$": "<rootDir>/src/prisma/$1"
   }
 }

@@ -11,6 +11,7 @@ import { StudentsModule } from './modules/students/students.module';
 
 import { RoomsModule } from './modules/rooms/rooms.module';
 import { GroupsModule } from './modules/group/group.module';
+import { TeacherAssignmentModule } from './modules/teacher-assignment/teacher-assignment.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { GroupsModule } from './modules/group/group.module';
     // ✅ Feature module
     RoomsModule,
     GroupsModule,
+    TeacherAssignmentModule,
     PrismaModule,
   ],
 })

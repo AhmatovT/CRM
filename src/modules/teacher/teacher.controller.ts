@@ -1,4 +1,3 @@
-import { Role } from '@prisma/client';
 import {
   Body,
   Controller,
@@ -20,6 +19,7 @@ import { TeacherService } from './teacher.service.ts ';
 import { Roles } from 'src/auth/decorators/roles.decorators';
 import { AccessTokenGuard } from 'src/auth/guards/accessToken.guard';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
+import { Role } from '@prisma/client';
 
 @Controller('teachers')
 @UseGuards(AccessTokenGuard, RolesGuard)
