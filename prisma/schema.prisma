@@ -2,12 +2,9 @@ generator client {
   provider = "prisma-client-js"
 }
 
-
 datasource db {
   provider = "postgresql"
 }
-
-
 
 enum Role {
   ADMIN
@@ -15,33 +12,59 @@ enum Role {
   TEACHER
   STUDENT
 }
-
-enum UserStatus {
-  ACTIVE
-  BLOCKED
-}
-enum Gender {
-  MALE
-  FEMALE
-}
-enum TeacherPaymentType {
-  SALARY
-  PERCENT
-}
 enum WeekPattern {
   ODD   // Dushanba, Chorshanba, Juma
   EVEN  // Seshanba, Payshanba, Shanba
 }
 
+enum UserStatus {
+  ACTIVE
+  BLOCKED
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum TeacherPaymentType {
+  SALARY
+  PERCENT
+}
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+  EXCUSED
+}
+
+enum EnrollmentStatus {
+  ACTIVE
+  DROPPED
+  COMPLETED
+}
+
+enum AttendanceSource {
+  TEACHER
+  SYSTEM
+}
+
+enum AttendanceSessionStatus {
+  OPEN
+  LOCKED
+}
 model User {
-  id String @id @default(cuid())
-  phone String? @unique
-  passwordHash String? 
-  role Role
-  status UserStatus  @default(ACTIVE)
-  refreshToken RefreshToken[]
+  id                 String     @id @default(cuid())
+  phone              String?    @unique
+  passwordHash       String?
+  role               Role
+  status             UserStatus @default(ACTIVE)
+
+  refreshToken       RefreshToken[]
+
   mustChangePassword Boolean @default(false)
-  tokenVersion Int @default(0)
+  tokenVersion       Int     @default(0)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   teacherProfile TeacherProfile?
@@ -51,18 +74,27 @@ model User {
   deletedTeacherProfiles TeacherProfile[] @relation("TeacherProfileDeletedBy")
   deletedStudentProfiles StudentProfile[] @relation("StudentProfileDeletedBy")
   deletedManagerProfiles ManagerProfile[] @relation("ManagerProfileDeletedBy")
+  deletedEnrollments     Enrollment[]
+
+
+  // ✅ Attendance relations
+  attendanceMarked            Attendance[]        @relation("AttendanceMarkedBy")
+  attendanceSessionsLocked    AttendanceSession[] @relation("AttendanceSessionLockedBy")
+  attendanceSessionsFinalized AttendanceSession[] @relation("AttendanceSessionFinalizedBy")
 
   @@index([role])
 }
 
 model RefreshToken {
-  id        String    @id @default(cuid())
+  id        String   @id @default(cuid())
   userId    String
-  tokenHash String    @unique
+  tokenHash String   @unique
   expiresAt DateTime
   revokedAt DateTime?
-  createdAt DateTime  @default(now())
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@index([userId])
   @@index([expiresAt])
   @@index([revokedAt])
@@ -108,9 +140,9 @@ model StudentProfile {
 
   idCard    String?
   photoUrl  String?
-
+  enrollment Enrollment[]
   isActive Boolean @default(true)
-
+  attendance Attendance[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -138,7 +170,7 @@ model TeacherProfile {
 
   monthlySalary Int?
   percent       Int?
-
+  attendanceSession AttendanceSession[]
   isActive Boolean @default(true)
 
   createdAt DateTime @default(now())
@@ -153,6 +185,24 @@ model TeacherProfile {
 
   @@index([userId])
 }
+model TeacherAssignment {
+  id        String   @id @default(cuid())
+
+  teacherId String
+  groupId   String
+
+  assignedAt DateTime @default(now())
+  endedAt    DateTime?
+
+  isActive Boolean @default(true)
+
+  teacher TeacherProfile @relation(fields: [teacherId], references: [id])
+  group   Group          @relation(fields: [groupId], references: [id])
+
+  @@index([teacherId])
+  @@index([groupId])
+
+}
 model Room {
   id             String    @id @default(cuid())
   name           String
@@ -162,17 +212,16 @@ model Room {
 
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
+  ateendanceSession AttendanceSession[]
   groups          Group[]
   @@index([deletedAt])
 }
-
 enum AuditAction {
   CREATE
   UPDATE
   DELETE
   RESTORE
 }
-
 model GroupHistory {
   id        String      @id @default(cuid())
   groupId   String
@@ -191,7 +240,6 @@ model GroupHistory {
   @@index([actorId])
 }
 
-
 model Group {
   id           String   @id @default(cuid())
   name         String
@@ -208,7 +256,7 @@ model Group {
 
   updatedAt    DateTime @updatedAt
   updatedById  String?
-
+  attendanceSession AttendanceSession[]
   deletedAt    DateTime?
   deletedById  String?
   deleteReason String?
@@ -216,28 +264,106 @@ model Group {
   teachers     TeacherAssignment[]
   room         Room     @relation(fields: [roomId], references: [id])
    histories    GroupHistory[]
-
+   enrollment Enrollment[]
   @@index([deletedAt])
 }
 
 
+model Enrollment {
+  id String @id @default(cuid())
 
-
-model TeacherAssignment {
-  id        String   @id @default(cuid())
-
-  teacherId String
+  studentId String
   groupId   String
 
-  assignedAt DateTime @default(now())
-  endedAt    DateTime?
+  status EnrollmentStatus @default(ACTIVE)
 
-  isActive Boolean @default(true)
+  startedAt DateTime  @default(now())
+  endedAt   DateTime?
 
-  teacher TeacherProfile @relation(fields: [teacherId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  deletedAt    DateTime?
+  deletedById  String?
+  deleteReason String?
+
+  student StudentProfile @relation(fields: [studentId], references: [id])
   group   Group          @relation(fields: [groupId], references: [id])
 
-  @@index([teacherId])
-  @@index([groupId])
+  deletedBy User? @relation(fields: [deletedById], references: [id])
 
+  @@index([studentId])
+  @@index([groupId])
+  @@index([status])
+  @@index([deletedAt])
+  @@index([deletedById])
+}
+
+model AttendanceSession {
+  id String @id @default(cuid())
+
+  groupId String
+  group   Group @relation(fields: [groupId], references: [id])
+
+  teacherId String
+  teacher   TeacherProfile @relation(fields: [teacherId], references: [id])
+
+  roomId String
+  room   Room @relation(fields: [roomId], references: [id])
+
+  date DateTime
+
+  startMin Int
+  endMin   Int
+
+  openAt  DateTime
+  closeAt DateTime
+
+  status     AttendanceSessionStatus @default(OPEN)
+  lockedAt   DateTime?
+  lockedById String?
+  lockedBy   User? @relation("AttendanceSessionLockedBy", fields: [lockedById], references: [id])
+
+  finalizedAt   DateTime?
+  finalizedById String?
+  finalizedBy   User? @relation("AttendanceSessionFinalizedBy", fields: [finalizedById], references: [id])
+
+  note String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  attendance Attendance[]
+
+  @@unique([groupId, date])
+  @@index([teacherId, date])
+  @@index([roomId, date])
+  @@index([closeAt])
+  @@index([lockedAt])
+}
+
+model Attendance {
+  id String @id @default(cuid())
+
+  sessionId String
+  session   AttendanceSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  studentId String
+  student   StudentProfile @relation(fields: [studentId], references: [id])
+
+  status  AttendanceStatus
+  comment String? @db.VarChar(200)
+
+  markedById String
+  markedBy   User @relation("AttendanceMarkedBy", fields: [markedById], references: [id])
+
+  markedAt  DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  source AttendanceSource @default(TEACHER)
+
+  @@unique([sessionId, studentId])
+  @@index([sessionId])
+  @@index([studentId])
+  @@index([markedById])
 }

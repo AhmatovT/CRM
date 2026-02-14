@@ -8,10 +8,11 @@ import { HealthModule } from './modules/health/healt.module';
 import { ManagersModule } from './modules/manager/manager.module';
 import { TeacherModule } from './modules/teacher/teachers.module';
 import { StudentsModule } from './modules/students/students.module';
-
 import { RoomsModule } from './modules/rooms/rooms.module';
 import { GroupsModule } from './modules/group/group.module';
 import { TeacherAssignmentModule } from './modules/teacher-assignment/teacher-assignment.module';
+import { EnrollmentsModule } from './modules/enrollments/enrollments.module';
+import { AttendanceModule } from './modules/attendance/attendance.module';
 
 @Module({
   imports: [
@@ -26,6 +27,8 @@ import { TeacherAssignmentModule } from './modules/teacher-assignment/teacher-as
     ManagersModule,
     TeacherModule,
     StudentsModule,
+    EnrollmentsModule,
+    AttendanceModule,
 
     // ✅ DB l ayer
     PrismaModule,
