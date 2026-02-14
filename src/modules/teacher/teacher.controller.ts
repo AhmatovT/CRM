@@ -1,3 +1,4 @@
+import { Role } from '@prisma/client';
 import {
   Body,
   Controller,
@@ -17,7 +18,6 @@ import { CreateTeacherDto } from './dto/create-teacher.dto';
 import { UpdateTeacherDto } from './dto/update-teacher.dto';
 import { TeacherService } from './teacher.service.ts ';
 import { Roles } from 'src/auth/decorators/roles.decorators';
-import { Role } from '@prisma/client';
 import { AccessTokenGuard } from 'src/auth/guards/accessToken.guard';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 
