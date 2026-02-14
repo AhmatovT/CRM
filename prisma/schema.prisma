@@ -42,6 +42,8 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+
+
   teacherProfile TeacherProfile?
   studentProfile StudentProfile?
   managerProfile ManagerProfile?
@@ -185,4 +187,46 @@ model Group {
   deletedAt    DateTime?
   deletedById  String?
   deleteReason String?
+
+  // 🔗 Lessons relation
+}
+
+
+
+
+model Lesson {
+  id        String   @id @default(cuid())
+
+  groupId   String
+
+
+  teacherId String
+
+
+  section   String
+  title     String
+  content   String?
+
+  lessonDate DateTime
+
+  startMin  Int      // boshlanish (daqiqada)
+  endMin    Int      // tugash (daqiqada)
+
+  status    LessonStatus @default(PLANNED)
+  heldAt    DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([groupId])
+  @@index([teacherId])
+  @@index([lessonDate])
+
+  @@index([lessonDate, startMin])
+  @@unique([groupId, lessonDate, startMin])
+}
+
+enum LessonStatus {
+  PLANNED
+  HELD
 }

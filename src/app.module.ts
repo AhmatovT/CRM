@@ -11,6 +11,7 @@ import { StudentsModule } from './modules/students/students.module';
 
 import { RoomsModule } from './modules/rooms/rooms.module';
 import { GroupsModule } from './modules/group/group.module';
+import { LessonsModule } from './modules/lessons/lessons.module';
 
 @Module({
   imports: [
@@ -25,7 +26,7 @@ import { GroupsModule } from './modules/group/group.module';
     ManagersModule,
     TeacherModule,
     StudentsModule,
-
+    LessonsModule,
     // ✅ DB l ayer
     PrismaModule,
 
